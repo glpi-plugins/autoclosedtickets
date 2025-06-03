@@ -49,7 +49,7 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
             {
               return;
             }
-            
+
             $html =  addslashes('<span class="bg-blue-lt d-inline-flex align-items-center ps-2" title="" data-bs-toggle="tooltip" data-bs-placement="top" style="border-left-style: solid;" role="button" data-bs-original-title="Автозакрытие заявки">'.
                            '<i class="fas fa-pause me-2"></i>'.
                            '<label class="form-check form-switch mt-2">'.
@@ -90,7 +90,7 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
       {
       $html =  addslashes('<span class="badge bg-red-lt" title="Автозакрытие">'.
                   '<i class="fa-solid fa-triangle-exclamation"></i>'.
-                  'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус на "Приостановка"'.
+                  'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус "Приостановка"'.
                '</span>') ;
 
       echo Html::scriptBlock(<<<JAVASCRIPT
