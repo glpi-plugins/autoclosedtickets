@@ -47,6 +47,29 @@ function plugin_init_autoclosedtickets()
     global $PLUGIN_HOOKS;
 
     $PLUGIN_HOOKS['csrf_compliant']['autoclosedtickets'] = true;
+    //Перехватываем форму коментария
+    $PLUGIN_HOOKS['post_item_form']['autoclosedtickets'] = [
+    'PluginAutoclosedticketsTicket', 'showCheckBoxITILFollowup'
+    ];
+    //Перехватываем событие перед добавлением коментария
+    $PLUGIN_HOOKS['pre_item_add']['autoclosedtickets']['ITILFollowup']  = [
+         'PluginAutoclosedticketsCommon',
+         'preItemITILFollowupAdd'
+     ];
+     //перехватываем событие после добавления коментария
+     $PLUGIN_HOOKS['item_add']['autoclosedtickets']['ITILFollowup']  = [
+          'PluginAutoclosedticketsCommon',
+          'itemITILFollowupAdd'
+      ];
+      //Перехватываем событие после обновления обращения
+      $PLUGIN_HOOKS['item_update']['autoclosedtickets']['Ticket']  = [
+           'PluginAutoclosedticketsCommon',
+           'itemTicketAdd'
+       ];
+       //Перехватываем событие отображения коментариев
+      $PLUGIN_HOOKS['show_in_timeline']['autoclosedtickets'] = [
+     'PluginAutoclosedticketsTicket'  , 'showTimelineClose'
+  ];
 }
 
 
@@ -61,7 +84,7 @@ function plugin_version_autoclosedtickets()
     return [
         'name'           => 'autoclosedtickets',
         'version'        => PLUGIN_AUTOCLOSEDTICKETS_VERSION,
-        'author'         => '<a href="https://github.com/romannadym/subtaskgenerator.git">Roman Yahin'</a>',
+        'author'         => '<a href="https://github.com/romannadym/subtaskgenerator.git">Roman Yahin\'</a>',
         'license'        => '',
         'homepage'       => 'https://github.com/romannadym/subtaskgenerator.git',
         'requirements'   => [

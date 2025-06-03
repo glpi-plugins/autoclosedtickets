@@ -36,6 +36,44 @@
  */
 function plugin_autoclosedtickets_install()
 {
+  global $DB;
+  $version = plugin_version_autoclosedtickets();
+  //создать экземпляр миграции с версией
+  // Параметры автоматического действия
+   $actionTitle = "Автозакрытие заявок";
+   $actionClass = "PluginAutoclosedticketsTask"; // Имя класса
+   $actionMethod = "watchTickets"; // Метод класса
+
+   // Регистрация действия
+   CronTask::Register(
+       $actionClass, // Объект (класс)
+       $actionMethod, // Метод
+       60, // Интервал (в минутах)
+       [
+           'comment'   => $actionTitle,
+           'mode'      => 2, // Запуск по расписанию
+           'parameter' => null,
+       ]
+   );
+      $migration = new Migration($version['version']);
+      //Create table only if it does not exists yet!
+      if (!$DB->tableExists('glpi_plugin_autoclosedtickets_tickets')) {
+        // Запрос на создание таблицы с исправлениями
+        $query = 'CREATE TABLE IF NOT EXISTS `glpi_plugin_autoclosedtickets_tickets` (
+              `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `ticket_id`    INT UNSIGNED   NOT NULL,
+              `followup_id`    INT UNSIGNED   NOT NULL,
+              `created` TIMESTAMP NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+              PRIMARY KEY    (`id`)
+           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;';
+
+        $DB->queryOrDie($query, $DB->error());
+    }
+
+    //создать экземпляр миграции с версией
+    $migration = new Migration($version['version']);
+    //execute the whole migration
+    $migration->executeMigration();
     return true;
 }
 
@@ -46,5 +84,6 @@ function plugin_autoclosedtickets_install()
  */
 function plugin_autoclosedtickets_uninstall()
 {
+    CronTask::Unregister('PluginAutoclosedticketsTask','watchTickets');
     return true;
 }
