@@ -51,16 +51,34 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
             }
 
             $html =  addslashes('<span class="bg-blue-lt d-inline-flex align-items-center ps-2" title="" data-bs-toggle="tooltip" data-bs-placement="top" style="border-left-style: solid;" role="button" data-bs-original-title="Автозакрытие заявки">'.
-                           '<i class="fas fa-pause me-2"></i>'.
+                           '<i class="fa-regular fa-circle-check me-2"></i>'.
                            '<label class="form-check form-switch mt-2">'.
                               '<input type="hidden" name="closed_ticket_auto" value="0">'.
-                              '<input type="checkbox" name="closed_ticket_auto" value="1" class="form-check-input collapsed" id="" role="button" data-bs-toggle="collapse" data-bs-target="" aria-expanded="false">'.
+                              '<input type="checkbox" name="closed_ticket_auto" value="1" class="form-check-input collapsed" id="closed_ticket_auto" role="button" data-bs-toggle="collapse" data-bs-target="" aria-expanded="false">'.
                           ' </label>'.
                         '</span>') ;
 
             echo Html::scriptBlock(<<<JAVASCRIPT
 
               $(document).ready(function(){
+
+                // Используем делегирование событий
+                 $(document).on('change', '#closed_ticket_auto', function() {
+                   if ($(this).is(':checked')) {
+                        // Находим соответствующий pending чекбокс
+                        const pendingCheckbox = $('input[type="checkbox"][name="pending"]');
+
+                        // Устанавливаем значение и триггерим события
+                        pendingCheckbox.val('1').prop('checked', true);
+
+                        // Обрабатываем Bootstrap collapse
+                        const target = pendingCheckbox.data('bs-target');
+                        $(target).collapse('show');
+                        pendingCheckbox.removeClass('collapsed')
+                                      .attr('aria-expanded', 'true');
+                    }
+                 });
+
                 $('.itilfollowup').find('.input-group-text').append("{$html}")
                 // Инициализация всех тултипов Bootstrap 5
                  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
