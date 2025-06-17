@@ -19,7 +19,43 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
       {
         if (isset($params['item']) && $params['item'] instanceof ITILFollowup)
         {
+          $rand = rand();
+          echo Html::scriptBlock(<<<JAVASCRIPT
 
+            $(document).ready(function(){
+               let html = `<div class="form-field row col-12  mb-2">
+                             <label class="col-form-label col-2 text-xxl-end" for="dropdown_requesttypes_id_{$rand}">
+                                 <i class="fas fa-toolbox fa-fw me-1" title="Действия при отправки коментария"></i>
+                             </label>
+                             <div class="col-10  field-container">
+                                <select name="action_followup" id="followupSelect_{$rand}">
+                                  <option value="">------------</option>
+                                  <option value="pending_ticket">Приостановка</option>
+                                </select>
+                             </div>
+                           </div>`
+              $('.itilfollowup').find('.input-group-text').removeClass('bg-yellow-lt');
+              $('.itilfollowup').find('.input-group-text').removeClass('flex-fill');
+              $('.itilfollowup').find('.input-group-text').addClass('bg-secondary-lt pt-2');
+              $('.itilfollowup').find('.input-group-text').html(html);
+
+              $('#followupSelect_{$rand}').on('change', function() {
+                    const selectedValue = $(this).val();
+                    $('.itilfollowup').find('input[name=pending]').remove();
+                    if(selectedValue == 'pending_ticket')
+                    {
+                      $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="pending" value="1" style="display:none" checked="">`);
+                    }
+                });
+              // Инициализация всех тултипов Bootstrap 5
+               var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+               var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                 return new bootstrap.Tooltip(tooltipTriggerEl);
+               });
+            })
+
+            JAVASCRIPT
+          );
             $ticket_close = new self();
             //Если признак автозакрытия уже есть то возврат
             if($ticket_close = current($ticket_close->find(['ticket_id' => $_GET['id']])))
@@ -50,36 +86,41 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
               return;
             }
 
-            $html =  addslashes('<span class="bg-blue-lt d-inline-flex align-items-center ps-2" title="" data-bs-toggle="tooltip" data-bs-placement="top" style="border-left-style: solid;" role="button" data-bs-original-title="Автозакрытие заявки">'.
-                           '<i class="fa-regular fa-circle-check me-2"></i>'.
-                           '<label class="form-check form-switch mt-2">'.
-                              '<input type="hidden" name="closed_ticket_auto" value="0">'.
-                              '<input type="checkbox" name="closed_ticket_auto" value="1" class="form-check-input collapsed" id="closed_ticket_auto" role="button" data-bs-toggle="collapse" data-bs-target="" aria-expanded="false">'.
-                          ' </label>'.
-                        '</span>') ;
-
             echo Html::scriptBlock(<<<JAVASCRIPT
 
               $(document).ready(function(){
+                 let html = `<div class="form-field row col-12  mb-2">
+                               <label class="col-form-label col-2 text-xxl-end" for="dropdown_requesttypes_id_{$rand}">
+                                   <i class="fas fa-toolbox fa-fw me-1" title="Действия при отправки коментария"></i>
+                               </label>
+                               <div class="col-10  field-container">
+                                  <select name="action_followup" id="followupSelect_{$rand}">
+                                    <option value="">------------</option>
+                                    <option value="pending_ticket">Приостановка</option>
+                                    <option value="closed_ticket_auto">Автозакрытие</option>
+                                  </select>
+                               </div>
+                             </div>`
+                //$('.itilfollowup').find('.input-group-text').append("{$html}")
+                $('.itilfollowup').find('.input-group-text').removeClass('bg-yellow-lt')
+                $('.itilfollowup').find('.input-group-text').addClass('bg-secondary-lt pt-2')
+                $('.itilfollowup').find('.input-group-text').html(html)
 
-                // Используем делегирование событий
-                 $(document).on('change', '#closed_ticket_auto', function() {
-                   if ($(this).is(':checked')) {
-                        // Находим соответствующий pending чекбокс
-                        const pendingCheckbox = $('input[type="checkbox"][name="pending"]');
-
-                        // Устанавливаем значение и триггерим события
-                        pendingCheckbox.val('1').prop('checked', true);
-
-                        // Обрабатываем Bootstrap collapse
-                        const target = pendingCheckbox.data('bs-target');
-                        $(target).collapse('show');
-                        pendingCheckbox.removeClass('collapsed')
-                                      .attr('aria-expanded', 'true');
-                    }
-                 });
-
-                $('.itilfollowup').find('.input-group-text').append("{$html}")
+                $('#followupSelect_{$rand}').on('change', function() {
+                      const selectedValue = $(this).val();
+                      $('.itilfollowup').find('input[name=pending]').remove();
+                      $('.itilfollowup').find('input[name=closed_ticket_auto]').remove();
+                      $('.itilfollowup').find('.input-group-text').removeClass('flex-fill');
+                      if(selectedValue == 'pending_ticket')
+                      {
+                        $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="pending" value="1" style="display:none" checked="">`);
+                      }
+                      if(selectedValue == 'closed_ticket_auto')
+                      {
+                        $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="pending" value="1" style="display:none" checked="">`);
+                        $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="closed_ticket_auto" value="1" style="display:none" checked="">`);
+                      }
+                  });
                 // Инициализация всех тултипов Bootstrap 5
                  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
