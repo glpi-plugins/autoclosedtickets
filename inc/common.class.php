@@ -2,9 +2,39 @@
 class PluginAutoclosedticketsCommon extends CommonDBTM
 {
   public static function preItemITILFollowupAdd(CommonDBTM $item)
+
   {
-  //  die(json_encode($item,JSON_UNESCAPED_UNICODE));
-  //   file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($item,JSON_UNESCAPED_UNICODE), FILE_APPEND);
+    //Догика перед отрпавкй ответа
+    $user_id = Session::getLoginUserID();
+
+    if ($item->fields['itemtype'] != 'Ticket')
+    {
+        return;
+    }
+
+    $ticket_user = new Ticket_User();
+    $initiators = $ticket_user->find([
+        'tickets_id' => $item->fields['items_id'],
+        'users_id'   => $user_id,
+        'type'       => Ticket_User::REQUESTER
+    ]);
+    //если пользователь не является инициатором завки то пропускаем
+    if(!current($initiators))
+    {
+      return;
+    }
+    $pluginTicket = new PluginAutoclosedticketsTicket();
+    $ticket_auto_close = current($pluginTicket->find(['ticket_id' => $item->fields['items_id']]));
+    //если в завяки нет признака автозакртытия пропускаем
+    if(!$ticket_auto_close)
+    {
+      return;
+    }
+    //устанавливаем статус в работе
+    $item->input['_status_not_change_ticket'] = "off";
+    $item->input['_status_current_ticket'] = Ticket::PLANNED;
+  //  die(json_encode($item,JSON_UNESCAPED_UNICODE));return;
+     file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($item,JSON_UNESCAPED_UNICODE), FILE_APPEND);
     return;
   }
   public static function itemITILFollowupAdd(CommonDBTM $item)
@@ -45,7 +75,7 @@ class PluginAutoclosedticketsCommon extends CommonDBTM
 
   public static function itemTicketAdd (CommonDBTM $item)
   {
-    //Логика обновления заявки 
+    //Логика обновления заявки
     //удаляем запись призанака  автозакрытия заявки если статус не равен Приостановка
     if($item->fields['status'] != 4)
     {
