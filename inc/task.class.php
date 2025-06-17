@@ -1,6 +1,6 @@
 <?php
 
-class PluginAutoclosedticketsTask extends Search
+class PluginAutoclosedticketsTask extends CommonDBTM
 {
 
   static function cronwatchTickets()
@@ -25,7 +25,7 @@ class PluginAutoclosedticketsTask extends Search
         $created = $value['created'];
         $totalTime =  self::getHoursForCalendar($created,date("Y-m-d H:i:s"),$calendar_id);//Подсчет прошедего времени в часах до одной десятой
         //Если прошло времени с момента установки признака больше 2 часов то то удаляем признак и меняем статус на решено и отправляем решение что обращение закрыто автоматически
-        if($totalTime > 2)
+        if($totalTime > 0.1)
         {
           $solution = new ITILSolution();
 
@@ -34,13 +34,21 @@ class PluginAutoclosedticketsTask extends Search
               'itemtype'  => 'Ticket',     // Тип объекта (заявка)
               'items_id'  => $value['ticket_id'],   // ID заявки
               'content'   => 'Обращение закрыто автоматически', // Текст решения
+              'users_id'      => 2, // ID пользователя, добавляющего решение
               // 'solutiontypes_id' => 1,   // Опционально: ID типа решения (если используется)
           ];
-          $solution->add($input);
+          //Если решение добавлено, то удаляем признак приостановки
+            if($solution->add($input))
+            {
+              $pluginTicket->delete([
+                'id' => $value['id']
+              ], 1);
+            }
         }
+       file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($totalTime,JSON_UNESCAPED_UNICODE), FILE_APPEND);
       }
 
-      file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($totalTime,JSON_UNESCAPED_UNICODE), FILE_APPEND);
+    //  file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($totalTime,JSON_UNESCAPED_UNICODE), FILE_APPEND);
     }
 
   }
