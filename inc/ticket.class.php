@@ -101,7 +101,6 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
                                   </select>
                                </div>
                              </div>`
-                //$('.itilfollowup').find('.input-group-text').append("{$html}")
                 $('.itilfollowup').find('.input-group-text').removeClass('bg-yellow-lt')
                 $('.itilfollowup').find('.input-group-text').addClass('bg-secondary-lt pt-2')
                 $('.itilfollowup').find('.input-group-text').html(html)
@@ -136,6 +135,13 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
 
   static function showTimelineClose  ($params)
   {
+
+    if (strpos($_SERVER['REQUEST_URI'], "ticket.form.php") !== true
+        && !isset($_GET['id']))
+        {
+          return;
+        }
+
       //Логика отображения признакак о закрытии заявки в коментарии
       $pluginTicket = new self();
       //Если нет запись признака автозакрытия заявки то возврат.
