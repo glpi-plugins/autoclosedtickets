@@ -34,7 +34,7 @@ class PluginAutoclosedticketsCommon extends CommonDBTM
     $item->input['_status_not_change_ticket'] = "off";
     $item->input['_status_current_ticket'] = Ticket::PLANNED;
   //  die(json_encode($item,JSON_UNESCAPED_UNICODE));return;
-     file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($item,JSON_UNESCAPED_UNICODE), FILE_APPEND);
+     //file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($item,JSON_UNESCAPED_UNICODE), FILE_APPEND);
     return;
   }
   public static function itemITILFollowupAdd(CommonDBTM $item)

@@ -45,7 +45,7 @@ class PluginAutoclosedticketsTask extends CommonDBTM
               ], 1);
             }
         }
-       file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($totalTime,JSON_UNESCAPED_UNICODE), FILE_APPEND);
+    //   file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($totalTime,JSON_UNESCAPED_UNICODE), FILE_APPEND);
       }
 
     //  file_put_contents(GLPI_ROOT.'/tmp/buffer.txt',PHP_EOL.PHP_EOL."[".date("Y-m-d H:i:s")."] ". json_encode($totalTime,JSON_UNESCAPED_UNICODE), FILE_APPEND);

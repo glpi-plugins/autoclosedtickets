@@ -52,7 +52,7 @@ function plugin_autoclosedtickets_install()
        [
            'comment'   => $actionTitle,
            'mode'      => 2, // Запуск по расписанию
-           'parameter' => null,
+           'param' => null,
        ]
    );
       $migration = new Migration($version['version']);
