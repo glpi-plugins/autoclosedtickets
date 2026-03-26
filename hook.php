@@ -62,7 +62,7 @@ function plugin_autoclosedtickets_install()
         $query = 'CREATE TABLE IF NOT EXISTS `glpi_plugin_autoclosedtickets_tickets` (
               `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
               `ticket_id`    INT UNSIGNED   NOT NULL,
-              `followup_id`    INT UNSIGNED   NOT NULL,
+              `followup_id`    INT UNSIGNED   DEFAULT NULL,
               `created` TIMESTAMP NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
               PRIMARY KEY    (`id`)
            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;';
@@ -70,8 +70,18 @@ function plugin_autoclosedtickets_install()
         $DB->queryOrDie($query, $DB->error());
     }
 
-    //создать экземпляр миграции с версией
-    $migration = new Migration($version['version']);
+    if(!$DB->fieldExists('glpi_plugin_autoclosedtickets_tickets', 'solution_id'))
+    {
+      $migration->addField(
+          'glpi_plugin_autoclosedtickets_tickets',
+          'solution_id',
+          'integer',
+          [
+              'default' => null,
+          ]
+      );
+
+    }
     //execute the whole migration
     $migration->executeMigration();
     return true;
