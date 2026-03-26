@@ -10,6 +10,108 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
   {
     return self::canUpdate();
   }
+  /**
+   * Общий обработчик для хука post_item_form.
+   * Он просто пробрасывает параметры дальше в нужные методы.
+   */
+  static function showFormCheckboxes($params)
+  {
+      // Пробуем отрисовать чекбокс для комментария (внутри он сам проверит, что это ITILFollowup)
+    //  self::showCheckBoxITILFollowup($params);
+
+      // Пробуем отрисовать чекбокс для решения (внутри он сам проверит, что это ITILSolution)
+      self::showCheckBoxITILSolution($params);
+  }
+  static function showCheckBoxITILSolution($params)
+  {
+      global $DB, $CFG_GLPI;
+      // Проверяем, что мы в тикете
+      if (strpos($_SERVER['REQUEST_URI'], "ticket.form.php") !== false && isset($_GET['id'])) {
+
+          // 1. ИЗМЕНЕНИЕ: Проверяем, что рендерится форма РЕШЕНИЯ (ITILSolution)
+          if (isset($params['item']) && $params['item'] instanceof ITILSolution) {
+              $rand = rand();
+
+              // Получаем ID текущего пользователя
+              $current_user_id = Session::getLoginUserID();
+
+              // Проверяем, является ли пользователь назначенным техником
+              $is_assigned = false;
+              $ticket = new Ticket();
+              if ($ticket->getFromDB($_GET['id'])) {
+                  $technicians = $ticket->getUsers(CommonITILActor::ASSIGN);
+                  foreach ($technicians as $technician) {
+                      if ($technician['users_id'] == $current_user_id) {
+                          $is_assigned = true;
+                          break;
+                      }
+                  }
+              }
+              // Если пользователь назначен, добавляем опцию автозакрытия
+              if (!$is_assigned) {
+                return;
+              }
+              $ticket_close = new self();
+              //Если признак автозакрытия уже есть то возврат
+              if($ticket_close = current($ticket_close->find([
+                                                              'ticket_id' => $_GET['id'],
+                                                              'NOT'       => ['solution_id' => null]
+                                                            ])))
+              {
+                return;
+              }
+
+
+
+              // 2. ИЗМЕНЕНИЕ: В JS везде меняем класс .itilfollowup на .itilsolution
+              echo Html::scriptBlock(<<<JAVASCRIPT
+              $(document).ready(function(){
+                  let html = `<div class="form-field row col-12">
+                               <label class="col-form-label col-1 text-xxl-end" for="solutionSelect_{$rand}">
+                                   <i class="fas fa-toolbox fa-fw me-1" title="Действия при отправке решения"></i>
+                               </label>
+                               <div class="col-10 field-container">
+                                  <select name="action_solution" id="solutionSelect_{$rand}">
+                                  <option value="">------------</option>
+                                  <option value="closed_ticket_auto_solution">Автозакрытие</option>
+                                  </select>
+                               </div>
+                             </div>`;
+
+                  // Ищем контейнер решения и стилизуем его
+                  let container = $('.itilsolution').find('.card-footer');
+                //  console.log(container)
+                  container.append(html);
+
+                  // Обработка выбора из списка
+                  $('#solutionSelect_{$rand}').on('change', function() {
+                      const selectedValue = $(this).val();
+                      let formBlock = $('.itilsolution');
+
+                      formBlock.find('input[name=pending]').remove();
+                      formBlock.find('input[name=closed_ticket_auto]').remove();
+                      formBlock.find('.input-group-text').removeClass('flex-fill');
+
+                      if(selectedValue == 'pending_ticket') {
+                          container.append(`<input type="checkbox" name="pending" value="1" style="display:none" checked="">`);
+                      }
+                      else if(selectedValue == 'closed_ticket_auto') {
+                          container.append(`<input type="checkbox" name="pending" value="1" style="display:none" checked="">`);
+                          container.append(`<input type="checkbox" name="closed_ticket_auto_solution" value="1" style="display:none" checked="">`);
+                      }
+                  });
+
+                  // Инициализация всех тултипов Bootstrap 5
+                  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                      return new bootstrap.Tooltip(tooltipTriggerEl);
+                  });
+              });
+              JAVASCRIPT
+              );
+          }
+      }
+  }
   static function showCheckBoxITILFollowup  ($params)
   {
     //Логика отрисовки кнопки автозакрытия в форме коментария
@@ -21,7 +123,6 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
         {
           $rand = rand();
           echo Html::scriptBlock(<<<JAVASCRIPT
-
             $(document).ready(function(){
                let html = `<div class="form-field row col-12  mb-2">
                              <label class="col-form-label col-2 text-xxl-end" for="dropdown_requesttypes_id_{$rand}">
@@ -58,7 +159,10 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
           );
             $ticket_close = new self();
             //Если признак автозакрытия уже есть то возврат
-            if($ticket_close = current($ticket_close->find(['ticket_id' => $_GET['id']])))
+            if($ticket_close = current($ticket_close->find([
+                                                            'ticket_id' => $_GET['id'],
+                                                            'NOT'       => ['followup_id' => null]
+                                                          ])))
             {
               return;
             }
@@ -97,7 +201,7 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
                                   <select name="action_followup" id="followupSelect_{$rand}">
                                     <option value="">------------</option>
                                     <option value="pending_ticket">Приостановка</option>
-                                    <option value="closed_ticket_auto">Автозакрытие</option>
+                                    <option value="closed_ticket_auto_followup">Автозакрытие</option>
                                   </select>
                                </div>
                              </div>`
@@ -117,7 +221,7 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
                       if(selectedValue == 'closed_ticket_auto')
                       {
                         $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="pending" value="1" style="display:none" checked="">`);
-                        $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="closed_ticket_auto" value="1" style="display:none" checked="">`);
+                        $('.itilfollowup').find('.input-group-text').append(`<input type="checkbox" name="closed_ticket_auto_followup" value="1" style="display:none" checked="">`);
                       }
                   });
                 // Инициализация всех тултипов Bootstrap 5
@@ -149,26 +253,55 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
       {
         return;
       }
-      $timeline_id = 'ITILFollowup_'.$ticket_close['followup_id'];
-      //Если есть признак автозакрытия и такой коментарий действительно существуют то отрисовываем сообщение
-      if (isset($params['timeline']) && isset($params['timeline'][$timeline_id]))
+      if(isset($ticket_close['followup_id'])&& $ticket_close['followup_id'] != null)
       {
-      $html =  addslashes('<span class="badge bg-red-lt" title="Автозакрытие">'.
-                  '<i class="fa-solid fa-triangle-exclamation"></i>'.
-                  'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус "Приостановка"'.
-               '</span>') ;
+        $timeline_id = 'ITILFollowup_'.$ticket_close['followup_id'];
+        //Если есть признак автозакрытия и такой коментарий действительно существуют то отрисовываем сообщение ITILSolution_47
+          if (isset($params['timeline']) && isset($params['timeline'][$timeline_id]))
+          {
+          $html =  addslashes('<span class="badge bg-red-lt" title="Автозакрытие">'.
+                      '<i class="fa-solid fa-triangle-exclamation"></i>'.
+                      'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус "Приостановка"'.
+                   '</span>') ;
 
-      echo Html::scriptBlock(<<<JAVASCRIPT
+          echo Html::scriptBlock(<<<JAVASCRIPT
 
-        $(document).ready(function(){
-          let timeline_id = '{$timeline_id}';
-          $('#'+timeline_id).find('.timeline-badges').append("{$html}")
-          // Инициализация всех тултипов Bootstrap 5
-        })
+            $(document).ready(function(){
+              let timeline_id = '{$timeline_id}';
+              $('#'+timeline_id).find('.timeline-badges').append("{$html}")
+              // Инициализация всех тултипов Bootstrap 5
+            })
 
-        JAVASCRIPT
-      );
-    }
+            JAVASCRIPT
+          );
+        }
+      }
+
+      if(isset($ticket_close['solution_id'])&& $ticket_close['solution_id'] != null)
+      {
+        $timeline_id = 'ITILSolution_'.$ticket_close['solution_id'];
+        //Если есть признак автозакрытия и такой коментарий действительно существуют то отрисовываем сообщение ITILSolution_47
+          if (isset($params['timeline']) && isset($params['timeline'][$timeline_id]))
+          {
+          $html =  addslashes('<span class="badge bg-red-lt text-wrap" title="Автозакрытие">'.
+                      '<i class="fa-solid fa-triangle-exclamation"></i>'.
+                      'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус'.
+                   '</span>') ;
+
+          echo Html::scriptBlock(<<<JAVASCRIPT
+
+            $(document).ready(function(){
+              let timeline_id = '{$timeline_id}';
+              $('#'+timeline_id).find('.timeline-badges').append("{$html}")
+              // Инициализация всех тултипов Bootstrap 5
+            })
+
+            JAVASCRIPT
+          );
+        }
+      }
+
+
   }
 
 }
