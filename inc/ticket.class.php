@@ -73,7 +73,7 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
                                <div class="col-10 field-container">
                                   <select name="action_solution" id="solutionSelect_{$rand}">
                                   <option value="">------------</option>
-                                  <option value="closed_ticket_auto_solution">Автозакрытие</option>
+                                  <option value="closed_ticket_auto_solution" selected>Автозакрытие</option>
                                   </select>
                                </div>
                              </div>`;
