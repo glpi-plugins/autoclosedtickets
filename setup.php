@@ -49,7 +49,7 @@ function plugin_init_autoclosedtickets()
     $PLUGIN_HOOKS['csrf_compliant']['autoclosedtickets'] = true;
     //Перехватываем форму коментария
     $PLUGIN_HOOKS['post_item_form']['autoclosedtickets'] = [
-    'PluginAutoclosedticketsTicket', 'showCheckBoxITILFollowup'
+        'PluginAutoclosedticketsTicket', 'showFormCheckboxes'
     ];
     //Перехватываем событие перед добавлением коментария
     $PLUGIN_HOOKS['pre_item_add']['autoclosedtickets']['ITILFollowup']  = [
@@ -57,14 +57,18 @@ function plugin_init_autoclosedtickets()
          'preItemITILFollowupAdd'
      ];
      //перехватываем событие после добавления коментария
-     $PLUGIN_HOOKS['item_add']['autoclosedtickets']['ITILFollowup']  = [
+    /* $PLUGIN_HOOKS['item_add']['autoclosedtickets']['ITILFollowup']  = [
           'PluginAutoclosedticketsCommon',
           'itemITILFollowupAdd'
-      ];
+      ];*/
+      $PLUGIN_HOOKS['item_add']['autoclosedtickets']['ITILSolution']  = [
+           'PluginAutoclosedticketsCommon',
+           'itemITILSolutionAdd'
+       ];
       //Перехватываем событие после обновления обращения
       $PLUGIN_HOOKS['item_update']['autoclosedtickets']['Ticket']  = [
            'PluginAutoclosedticketsCommon',
-           'itemTicketAdd'
+           'itemTicketUpdate'
        ];
        //Перехватываем событие отображения коментариев
       $PLUGIN_HOOKS['show_in_timeline']['autoclosedtickets'] = [
