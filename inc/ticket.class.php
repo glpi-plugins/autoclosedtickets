@@ -259,9 +259,9 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
         //Если есть признак автозакрытия и такой коментарий действительно существуют то отрисовываем сообщение ITILSolution_47
           if (isset($params['timeline']) && isset($params['timeline'][$timeline_id]))
           {
-          $html =  addslashes('<span class="badge bg-red-lt" title="Автозакрытие">'.
+          $html =  addslashes('<span class="badge bg-red-lt text-wrap" title="Автозакрытие">'.
                       '<i class="fa-solid fa-triangle-exclamation"></i>'.
-                      'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус "Приостановка"'.
+                      'Обращение закроется автоматически через 3 рабочих дня если решение не будет одобрено или отказано инициатором обращения'.
                    '</span>') ;
 
           echo Html::scriptBlock(<<<JAVASCRIPT
@@ -285,7 +285,7 @@ class PluginAutoclosedticketsTicket extends CommonDBTM
           {
           $html =  addslashes('<span class="badge bg-red-lt text-wrap" title="Автозакрытие">'.
                       '<i class="fa-solid fa-triangle-exclamation"></i>'.
-                      'Обращение закроется автоматически через 48 часов если не поступит ответ и обращение не сменит статус'.
+                      'Обращение закроется автоматически через 3 рабочих дня если решение не будет одобрено или отказано инициатором обращения'.
                    '</span>') ;
 
           echo Html::scriptBlock(<<<JAVASCRIPT
